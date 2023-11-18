@@ -2,28 +2,10 @@ from copy import deepcopy
 import numpy as np
 from Team import Team
 from RankingCalculator import *
+from RecordGenerator import *
 
-def gen_new_record(teams, winner, loser):
-    new_teams = deepcopy(teams)
-    new_teams[winner].win += 1
-    new_teams[loser].lose += 1
-    return new_teams
 
-def gen_new_record_draw(teams, team1, team2):
-    new_teams = deepcopy(teams)
-    new_teams[team1].draw += 1
-    new_teams[team2].draw += 1
-    return new_teams
 
-first_half_season_record = np.array([])
-
-def gen_second_half_season_record(teams):
-    result = deepcopy(teams)
-    for i in range(len(teams)):
-        result[i].win -= first_half_season_record[i].win
-        result[i].lose -= first_half_season_record[i].lose
-        result[i].draw -= first_half_season_record[i].draw
-    return result
 
 def simulate(depth, teams, games, first_half_season_champion):
     if depth == len(games) // 2:

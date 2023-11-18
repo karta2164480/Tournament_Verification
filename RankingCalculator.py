@@ -1,6 +1,8 @@
 import numpy as np
 from Team import Team
-from simulator import gen_second_half_season_record
+from RecordGenerator import *
+
+first_half_season_record = np.array([])
 
 def find_first_half_season_champion(teams):
     result = 0
@@ -16,7 +18,7 @@ def find_first_half_season_champion(teams):
     return result
 
 def find_playoff_teams(teams, first_half_season_champion):
-    second_half_season_record = gen_second_half_season_record(teams)
+    second_half_season_record = gen_second_half_season_record(teams, first_half_season_record)
     second_half_season_champion = 0
     for i in range(len(teams)):
         team_i_total = second_half_season_record[i].win + second_half_season_record[i].lose

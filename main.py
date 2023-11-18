@@ -25,14 +25,19 @@ def create_teams(n):
         teams.append(Team(i))
     return np.array(teams)
 
+def main():
+    n_teams = int(input("Input the number of teams: "))
+    n_games = int(input("Input the number of games that each team plays against another in a half-season: "))
+    first_half_season = create_schedule(n_teams, n_games)
+    second_half_season = create_schedule(n_teams, n_games)
+    games = first_half_season + second_half_season
+    teams = create_teams(n_teams)
+    intentional_lose = np.zeros(len(games))
+    simulate(0, teams, games, None)
+    for i in range(len(games)):
+        if intentional_lose[i] == 1:
+            print("Game %d may have teams intentionally lose." % (i + 1))
 
-n_teams = int(input("Input the number of teams: "))
-n_games = int(input("Input the number of games that each team plays against another in a half-season: "))
-first_half_season = create_schedule(n_teams, n_games)
-second_half_season = create_schedule(n_teams, n_games)
-games = first_half_season + second_half_season
-teams = create_teams(n_teams)
-intentional_lose = np.zeros(len(games))
-simulate(0, teams, games, None)
-for i in range(len(games)):
-    print("Game %d may have teams intentionally lose." % (i + 1))
+
+if __name__ == "__main__":
+    main()
