@@ -1,4 +1,4 @@
-from copy import deepcopy
+
 import numpy as np
 from Team import Team
 from RankingCalculator import *
@@ -7,22 +7,24 @@ from RecordGenerator import *
 
 
 
-def simulate(depth, teams, games, first_half_season_champion, intentional_lose):
+def simulate(depth, teams, games, first_half_season_champions, intentional_lose):
     if depth == len(games) // 2:
-        first_half_season_champion = find_first_half_season_champion(teams)
+        first_half_season_champions = find_one_first_half_season_champion(teams)
+        # first_half_season_champions = find_all_first_half_season_champion(teams)
     elif depth == len(games):
-        return find_playoff_teams(teams, first_half_season_champion)
+        return find_one_playoff_teams(teams, first_half_season_champions)
+        # return find_all_playoff_teams(teams, first_half_season_champions)
 
     home = games[depth][0]
     guest = games[depth][1]
     # home team wins
-    playoff_chances_hw = simulate(depth + 1, gen_new_record(teams, home, guest), games, first_half_season_champion, intentional_lose)
+    playoff_chances_hw = simulate(depth + 1, gen_new_record(teams, home, guest), games, first_half_season_champions, intentional_lose)
 
     # guest team wins
-    playoff_chances_gw = simulate(depth + 1, gen_new_record(teams, guest, home), games, first_half_season_champion, intentional_lose)
+    playoff_chances_gw = simulate(depth + 1, gen_new_record(teams, guest, home), games, first_half_season_champions, intentional_lose)
 
     # draw
-    playoff_chances_d = simulate(depth + 1, gen_new_record_draw(teams, home, guest), games, first_half_season_champion, intentional_lose)
+    playoff_chances_d = simulate(depth + 1, gen_new_record_draw(teams, home, guest), games, first_half_season_champions, intentional_lose)
 
     # print(playoff_chances_hw)
     # print(playoff_chances_gw)
