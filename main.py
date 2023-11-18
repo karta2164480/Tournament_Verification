@@ -33,7 +33,8 @@ def main():
     games = first_half_season + second_half_season
     teams = create_teams(n_teams)
     intentional_lose = np.zeros(len(games))
-    simulate(0, teams, games, None, intentional_lose)
+    stateDict = {}
+    simulate(0, teams, games, None, intentional_lose, stateDict)
     for i in range(len(games)):
         if intentional_lose[i] == 1:
             print("Game %d may have teams intentionally lose." % (i + 1))
