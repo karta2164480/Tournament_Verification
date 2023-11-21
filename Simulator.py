@@ -35,10 +35,7 @@ def simulate(depth, teams, games, first_half_season_champions, intentional_lose,
     # print(playoff_chances_gw)
     # print(playoff_chances_d)
     if playoff_chances_gw[home] > playoff_chances_hw[home] or playoff_chances_hw[guest] > playoff_chances_gw[guest]:
-        # global intentional_lose
-        intentional_lose[depth] = 1
-    # else:
-    #     print("game %d is ok." % depth)
+        print("When records = %s\nGame %d may have teams intentionally lose." % (key, depth + 1))
 
     stateDict[key] = playoff_chances_hw + playoff_chances_gw + playoff_chances_d
 
