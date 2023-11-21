@@ -32,7 +32,7 @@ def main():
     first_half_season_champions = find_one_first_half_season_champion(teams)
     # first_half_season_champions = find_all_first_half_season_champion(teams)
     # simulate(0, teams, games, None, intentional_lose, stateDict)
-    simulate(0, teams, games, first_half_season_champions, intentional_lose, stateDict)
+    simulate(len(games), teams, games, first_half_season_champions, intentional_lose, stateDict)
     # for i in range(len(games)):
     #     if intentional_lose[i] == 1:
     #         print("Game %d may have teams intentionally lose." % (i + 1))
