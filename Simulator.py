@@ -5,7 +5,7 @@ from RankingCalculator import *
 from RecordGenerator import *
 
 
-def simulate(depth, teams, games, first_half_season_champions, intentional_lose, stateDict):
+def simulate(depth, teams, games, first_half_season_champions, stateDict):
     key = ""
     for team in teams:
         key += team.get_key()
@@ -23,13 +23,13 @@ def simulate(depth, teams, games, first_half_season_champions, intentional_lose,
     home = games[depth][0]
     guest = games[depth][1]
     # home team wins
-    playoff_chances_hw = simulate(depth + 1, gen_new_record(teams, home, guest), games, first_half_season_champions, intentional_lose, stateDict)
+    playoff_chances_hw = simulate(depth + 1, gen_new_record(teams, home, guest), games, first_half_season_champions, stateDict)
 
     # guest team wins
-    playoff_chances_gw = simulate(depth + 1, gen_new_record(teams, guest, home), games, first_half_season_champions, intentional_lose, stateDict)
+    playoff_chances_gw = simulate(depth + 1, gen_new_record(teams, guest, home), games, first_half_season_champions, stateDict)
 
     # draw
-    playoff_chances_d = simulate(depth + 1, gen_new_record_draw(teams, home, guest), games, first_half_season_champions, intentional_lose, stateDict)
+    playoff_chances_d = simulate(depth + 1, gen_new_record_draw(teams, home, guest), games, first_half_season_champions, stateDict)
 
     # print(playoff_chances_hw)
     # print(playoff_chances_gw)
