@@ -26,12 +26,13 @@ def main():
     teams = create_teams(n_teams)
     # intentional_lose = np.zeros(len(games))
     stateDict = {}
+    remaining_n_games = np.full(n_teams, n_games)
 
     gen_first_half_season_record(teams, n_games)
     # first_half_season_champions = find_one_first_half_season_champion(teams)
     # first_half_season_champions = find_all_first_half_season_champion(teams)
     # simulate(0, teams, games, None, intentional_lose, stateDict)
-    simulate(len(games) // 2, teams, games, None, stateDict)
+    simulate(len(games) // 2, teams, games, None, stateDict, remaining_n_games)
     # for i in range(len(games)):
     #     if intentional_lose[i] == 1:
     #         print("Game %d may have teams intentionally lose." % (i + 1))

@@ -24,26 +24,6 @@ def gen_second_half_season_record(teams, first_half_season_record):
 
 def gen_first_half_season_record(teams, n_games):
     n = len(teams)
-    # for i in range(n - 1):
-    #     remaining_games = n_games * (n - i - 1)
-    #     win_this_round = randint(0, remaining_games)
-    #     teams[i].win += win_this_round
-    #     lose_this_round = randint(0, remaining_games - win_this_round)
-    #     teams[i].lose += lose_this_round
-    #     teams[i].draw = n_games * (n - 1) - teams[i].win - teams[i].lose
-
-    #     remaining_wins = win_this_round
-    #     remaining_loses = lose_this_round
-    #     for j in range(i + 1, n - 1):
-    #         n_wins = randint(0, min(remaining_loses, n_games))
-    #         teams[j].win += n_wins
-    #         remaining_loses -= n_wins
-    #         n_loses = randint(0, min(remaining_wins, n_games - n_wins))
-    #         teams[j].lose += n_loses
-    #         remaining_wins -= n_loses
-    #     teams[n - 1].win += remaining_loses
-    #     teams[n - 1].lose += remaining_wins
-
     for i in range(n - 1):
         for j in range(i + 1, n):
             n_wins = randint(0, n_games)
