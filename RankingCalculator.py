@@ -17,8 +17,33 @@ def find_one_first_half_season_champion(teams):
     first_half_season_record = teams
     return result
 
+def get_first_half_season_record():
+    return first_half_season_record
+
+def get_second_half_season_record(teams):
+    result = deepcopy(teams)
+    for i in range(len(teams)):
+        result[i].win -= first_half_season_record[i].win
+        result[i].lose -= first_half_season_record[i].lose
+        result[i].draw -= first_half_season_record[i].draw
+    return result
+
+def get_all_second_half_champions(teams):
+    second_half_season_record = get_second_half_season_record(teams)
+    champions = []
+    champion_winrate = -1
+    for i in range(len(teams)):
+        team_i_winrate = winrate(second_half_season_record[i])
+        if team_i_winrate > champion_winrate:
+            champion_winrate = team_i_winrate
+            champions = [i]
+        elif team_i_winrate == champion_winrate:
+            champions.append(i)
+
+    return champions
+
 def find_one_playoff_teams(teams, first_half_season_champion):
-    second_half_season_record = gen_second_half_season_record(teams, first_half_season_record)
+    second_half_season_record = get_second_half_season_record(teams)
     second_half_season_champion = 0
     for i in range(len(teams)):
         if winrate(second_half_season_record[i]) > winrate(second_half_season_record[second_half_season_champion]):
@@ -44,18 +69,10 @@ def find_one_playoff_teams(teams, first_half_season_champion):
                 return playoff_teams
 
 def find_all_playoff_teams(teams, first_half_season_champion):
-    second_half_season_record = gen_second_half_season_record(teams, first_half_season_record)
-    second_half_season_champions = []
-    second_champion_winrate = 0
-    for i in range(len(teams)):
-        team_i_total = second_half_season_record[i].win + second_half_season_record[i].lose
-        team_i_winrate = second_half_season_record[i].win / team_i_total if team_i_total != 0 else 0
-        if team_i_winrate >= second_champion_winrate:
-            second_champion_winrate = team_i_winrate
-            second_half_season_champions.append(i)
+    second_half_season_champions = get_all_second_half_champions(teams)
 
     playoff_teams = np.zeros(len(teams))
-    sorted_record = sorted(teams, key=lambda x:(x.win / (x.win + x.lose) if x.win + x.lose != 0 else 0))
+    sorted_record = sorted(teams, key=lambda x: winrate(x))
 
     for second_half_season_champion in second_half_season_champions:
         playoff_teams[first_half_season_champion] = 1
