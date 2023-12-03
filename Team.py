@@ -6,4 +6,4 @@ class Team:
         self.draw = 0
 
     def get_key(self):
-        return f'({self.id},{self.win},{self.lose},{self.draw})'
+        return f'({self.win},{self.lose},{self.draw})'

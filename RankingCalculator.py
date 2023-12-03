@@ -52,20 +52,20 @@ def find_one_playoff_teams(teams, first_half_season_champion):
     playoff_teams = np.zeros(len(teams))
     playoff_teams[first_half_season_champion] = 1
     playoff_teams[second_half_season_champion] = 1
-    sorted_record = sorted(teams, key=lambda x:(x.win / (x.win + x.lose) if x.win + x.lose != 0 else 0))
+    sorted_record = sorted(teams, key=lambda x: -winrate(x))
     if first_half_season_champion == second_half_season_champion:
         count = 1
-        for i in range(len(sorted_record)):
-            if i != first_half_season_champion:
-                playoff_teams[i] = 1
+        for team in sorted_record:
+            if team.id != first_half_season_champion:
+                playoff_teams[team.id] = 1
                 count += 1
                 if count == 3:
                     return playoff_teams
     else:
         count = 2
-        for i in range(len(sorted_record)):
-            if i != first_half_season_champion and i != second_half_season_champion:
-                playoff_teams[i] = 1
+        for team in sorted_record:
+            if team.id != first_half_season_champion and team.id != second_half_season_champion:
+                playoff_teams[team.id] = 1
                 return playoff_teams
 
 def find_all_playoff_teams(teams, first_half_season_champion):
