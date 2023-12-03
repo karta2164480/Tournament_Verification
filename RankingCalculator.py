@@ -95,6 +95,23 @@ def find_all_playoff_teams(teams, first_half_season_champion):
 
 def IsRankFixed(teams, remaining_n_games):
     n = len(teams)
+
+    second_half_champions = get_all_second_half_champions(teams)
+    for champion in second_half_champions:
+        champion_record = deepcopy(teams[champion])
+        champion_record.lose += remaining_n_games[champion]
+        for i in range(n):
+            if i == champion:
+                continue
+            team_i_record = deepcopy(teams[i])
+            team_i_record.win += remaining_n_games[i]
+            if i in second_half_champions:
+                if winrate(champion_record) < winrate(team_i_record):
+                    return False
+            else:
+                if winrate(champion_record) <= winrate(team_i_record):
+                    return False
+
     for i in range(n):
         for j in range(n):
             if i == j:
