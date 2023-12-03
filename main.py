@@ -62,7 +62,7 @@ def simulate(depth, teams, games, first_half_season_champion, stateDict, remaini
         if playoff_chances_hw[guest] > playoff_chances_gw[guest]:
             final_state = hw_final_state
 
-        if depth >= 22:
+        if depth >= 23:
             print('---')
             if playoff_chances_gw[home] > playoff_chances_hw[home]:
                 print(f'game {depth+1} ({home},{guest}), team {home} may intentionally lose')
