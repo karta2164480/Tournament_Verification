@@ -30,12 +30,9 @@ def IsRankFixed(teams, remaining_n_games):
     return True
 
 def simulate(depth, teams, games, first_half_season_champions, stateDict, remaining_n_games):
-    key = ""
-    for team in teams:
-        key += team.get_key()
-
-    if key in stateDict:
-        return stateDict[key]
+    state = get_state(teams)
+    if state in stateDict:
+        return stateDict[state]
 
     if depth == len(games) // 2:
         first_half_season_champions = find_one_first_half_season_champion(teams)
@@ -63,8 +60,14 @@ def simulate(depth, teams, games, first_half_season_champions, stateDict, remain
     # print(playoff_chances_gw)
     # print(playoff_chances_d)
     if playoff_chances_gw[home] > playoff_chances_hw[home] or playoff_chances_hw[guest] > playoff_chances_gw[guest]:
-        print("When records = %s\nGame %d may have teams intentionally lose." % (key, depth + 1))
+        print("When records = %s\nGame %d may have teams intentionally lose." % (state, depth + 1))
 
-    stateDict[key] = playoff_chances_hw + playoff_chances_gw + playoff_chances_d
+    stateDict[state] = playoff_chances_hw + playoff_chances_gw + playoff_chances_d
 
     return playoff_chances_hw + playoff_chances_gw + playoff_chances_d
+
+def get_state(teams):
+    state = ""
+    for team in teams:
+        state += team.get_key()
+    return state
