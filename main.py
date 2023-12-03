@@ -22,7 +22,7 @@ def get_state(teams):
         state += team.get_key()
     return state
 
-def simulate(depth, teams, games, first_half_season_champions, stateDict, remaining_n_games):
+def simulate(depth, teams, games, first_half_season_champion, stateDict, remaining_n_games):
     global count
     count += 1
 
@@ -31,13 +31,11 @@ def simulate(depth, teams, games, first_half_season_champions, stateDict, remain
         return stateDict[state]
 
     if depth == len(games) // 2:
-        first_half_season_champions = find_one_first_half_season_champion(teams)
-        # first_half_season_champions = find_all_first_half_season_champion(teams)
+        first_half_season_champion = find_one_first_half_season_champion(teams)
     elif depth == len(games):
-        return find_one_playoff_teams(teams, first_half_season_champions)
-        # return find_all_playoff_teams(teams, first_half_season_champions)
+        return find_all_playoff_teams(teams, first_half_season_champion)
     elif IsRankFixed(teams, remaining_n_games):
-        return find_one_playoff_teams(teams, first_half_season_champions)
+        return find_all_playoff_teams(teams, first_half_season_champion)
 
     home = games[depth][0]
     guest = games[depth][1]
@@ -46,13 +44,13 @@ def simulate(depth, teams, games, first_half_season_champions, stateDict, remain
     remaining_n_games[home] -= 1
     remaining_n_games[guest] -= 1
     # home team wins
-    playoff_chances_hw = simulate(depth + 1, gen_new_record(teams, home, guest), games, first_half_season_champions, stateDict, deepcopy(remaining_n_games))
+    playoff_chances_hw = simulate(depth + 1, gen_new_record(teams, home, guest), games, first_half_season_champion, stateDict, deepcopy(remaining_n_games))
 
     # guest team wins
-    playoff_chances_gw = simulate(depth + 1, gen_new_record(teams, guest, home), games, first_half_season_champions, stateDict, deepcopy(remaining_n_games))
+    playoff_chances_gw = simulate(depth + 1, gen_new_record(teams, guest, home), games, first_half_season_champion, stateDict, deepcopy(remaining_n_games))
 
     # draw
-    playoff_chances_d = simulate(depth + 1, gen_new_record_draw(teams, home, guest), games, first_half_season_champions, stateDict, deepcopy(remaining_n_games))
+    playoff_chances_d = simulate(depth + 1, gen_new_record_draw(teams, home, guest), games, first_half_season_champion, stateDict, deepcopy(remaining_n_games))
 
     # print(playoff_chances_hw)
     # print(playoff_chances_gw)
@@ -66,8 +64,8 @@ def simulate(depth, teams, games, first_half_season_champions, stateDict, remain
 
 count = 0
 def main():
-    n_teams = int(input("Input the number of teams: "))
-    n_games = int(input("Input the number of games that each team plays against another in a half-season: "))
+    n_teams = 4#int(input("Input the number of teams: "))
+    n_games = 2#int(input("Input the number of games that each team plays against another in a half-season: "))
     first_half_season = create_schedule(n_teams, n_games)
     second_half_season = create_schedule(n_teams, n_games)
     games = first_half_season + second_half_season
