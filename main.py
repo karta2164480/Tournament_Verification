@@ -64,7 +64,7 @@ def simulate(depth, teams, games, first_half_season_champion, stateDict, remaini
 
         if depth >= 22: # for debug
             print('---')
-            print(f'state = {state}')
+            print(f'state =              {state}')
             print(f'second half record = {get_state(get_second_half_season_record(teams))}')
             if playoff_chances_gw[home] > playoff_chances_hw[home]:
                 print(f'game {depth+1} ({home},{guest}), team {home} may intentionally lose')
@@ -72,9 +72,9 @@ def simulate(depth, teams, games, first_half_season_champion, stateDict, remaini
             if playoff_chances_hw[guest] > playoff_chances_gw[guest]:
                 print(f'game {depth+1} ({home},{guest}), team {guest} may intentionally lose')
                 print(f'{home} win chances = {int(playoff_chances_hw[guest])}, {guest} win chances = {int(playoff_chances_gw[guest])}')
-            print(f'state if {guest} win = {get_state(gen_new_record(teams, guest, home))}')
+            print(f'state if {guest} win =     {get_state(gen_new_record(teams, guest, home))}')
             print(f's2 record if {guest} win = {get_state(get_second_half_season_record(gen_new_record(teams, guest, home)))}')
-            print(f'state if {home} win = {get_state(gen_new_record(teams, home, guest))}')
+            print(f'state if {home} win =     {get_state(gen_new_record(teams, home, guest))}')
             print(f's2 record if {home} win = {get_state(get_second_half_season_record(gen_new_record(teams, home, guest)))}')
 
             
