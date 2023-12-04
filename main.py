@@ -34,9 +34,9 @@ def simulate(depth, teams, games, first_half_season_champion, stateDict, remaini
         first_half_season_champion = find_one_first_half_season_champion(teams)
     elif depth == len(games):
         return find_all_playoff_teams(teams, first_half_season_champion), teams
-    elif IsRankFixed(teams, remaining_n_games):
-        total_remain_games = len(games) - depth # not sure
-        return find_all_playoff_teams(teams, first_half_season_champion) * (3 ** total_remain_games), teams
+    # elif IsRankFixed(teams, remaining_n_games):
+    #     total_remain_games = len(games) - depth # not sure
+    #     return find_all_playoff_teams(teams, first_half_season_champion) * (3 ** total_remain_games), teams
 
     home = games[depth][0]
     guest = games[depth][1]
@@ -62,21 +62,27 @@ def simulate(depth, teams, games, first_half_season_champion, stateDict, remaini
         if playoff_chances_hw[guest] > playoff_chances_gw[guest]:
             final_state = hw_final_state
 
-        if depth >= 22:
+        if depth >= 22: # for debug
             print('---')
-            if playoff_chances_gw[home] > playoff_chances_hw[home]:
-                print(f'game {depth+1} ({home},{guest}), team {home} may intentionally lose')
-                print(f'opponent win chances = {int(playoff_chances_gw[home])}, me win chanes = {int(playoff_chances_hw[home])}')
-            if playoff_chances_hw[guest] > playoff_chances_gw[guest]:
-                print(f'game {depth+1} ({home},{guest}), team {guest} may intentionally lose')
-                print(f'opponent win chances = {int(playoff_chances_hw[guest])}, me win chances = {int(playoff_chances_gw[guest])}')
             print(f'state = {state}')
             print(f'second half record = {get_state(get_second_half_season_record(teams))}')
+            if playoff_chances_gw[home] > playoff_chances_hw[home]:
+                print(f'game {depth+1} ({home},{guest}), team {home} may intentionally lose')
+                print(f'{guest} win chances = {int(playoff_chances_gw[home])}, {home} win chanes = {int(playoff_chances_hw[home])}')
+            if playoff_chances_hw[guest] > playoff_chances_gw[guest]:
+                print(f'game {depth+1} ({home},{guest}), team {guest} may intentionally lose')
+                print(f'{home} win chances = {int(playoff_chances_hw[guest])}, {guest} win chances = {int(playoff_chances_gw[guest])}')
+            print(f'state if {guest} win = {gen_new_record(teams, guest, home)}')
+            print(f's2 record if {guest} win = {get_state(get_second_half_season_record(gen_new_record(teams, guest, home)))}')
+            print(f'state if {home} win = {gen_new_record(teams, home, guest)}')
+            print(f's2 record if {home} win = {get_state(get_second_half_season_record(gen_new_record(teams, home, guest)))}')
+
+            
             print(f'schedule = {games[depth:]}')
-            print(f'first half season champion = {first_half_season_champion}')
+            print(f's1 champion = {first_half_season_champion}')
             print(f'one of final state = {get_state(final_state)}, playoff teams = {find_all_playoff_teams(final_state, first_half_season_champion)}')
             print(f'one of final s2 record = {get_state(get_second_half_season_record(final_state))}, playoff teams = {get_all_second_half_champions(final_state)}')
-            print(f'one of second half season champions = {get_all_second_half_champions(final_state)}')
+            print(f'one of s2 champions = {get_all_second_half_champions(final_state)}')
             print('---')
 
     stateDict[state] = playoff_chances_hw + playoff_chances_gw + playoff_chances_d
