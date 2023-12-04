@@ -74,23 +74,25 @@ def find_all_playoff_teams(teams, first_half_season_champion):
     playoff_teams = np.zeros(len(teams))
     sorted_record = sorted(teams, key=lambda x: -winrate(x))
 
+    playoff_teams[first_half_season_champion] = 1
+
     for second_half_season_champion in second_half_season_champions:
-        playoff_teams[first_half_season_champion] = 1
         playoff_teams[second_half_season_champion] = 1
+
         if first_half_season_champion == second_half_season_champion:
-            count = 1
-            for team in sorted_record:
-                if team.id != first_half_season_champion:
-                    playoff_teams[team.id] = 1
-                    count += 1
-                    if count == 3:
-                        break
+            sorted_record_without_champion = [team for team in sorted_record if team.id != first_half_season_champion]
+            playoff_teams[sorted_record_without_champion[0].id] = 1
+            playoff_teams[sorted_record_without_champion[1].id] = 1
+            for i in range(2, len(sorted_record_without_champion)):
+                if winrate(sorted_record_without_champion[i]) == winrate(sorted_record_without_champion[1]):
+                    playoff_teams[sorted_record_without_champion[i].id] = 1
         else:
-            count = 2
-            for team in sorted_record:
-                if team.id != first_half_season_champion and team.id != second_half_season_champion:
-                    playoff_teams[team.id] = 1
-                    break
+            sorted_record_without_champion = [team for team in sorted_record if team.id not in (first_half_season_champion, second_half_season_champion)]
+            playoff_teams[sorted_record_without_champion[0].id] = 1
+            for i in range(1, len(sorted_record_without_champion)):
+                if winrate(sorted_record_without_champion[i]) == winrate(sorted_record_without_champion[0]):
+                    playoff_teams[sorted_record_without_champion[i].id] = 1
+
     return playoff_teams
 
 def IsRankFixed(teams, remaining_n_games):
