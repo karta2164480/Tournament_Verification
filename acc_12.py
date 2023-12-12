@@ -35,9 +35,9 @@ def simulate(depth, teams, games, first_half_season_champion, first_half_season_
         first_half_season_champion, first_half_season_record = find_one_first_half_season_champion_n_record(teams)
     elif depth == len(games):
         return find_all_playoff_teams(teams, first_half_season_champion, first_half_season_record), teams
-    # elif IsRankFixed(teams, remaining_n_games):
-    #     total_remain_games = len(games) - depth # not sure
-    #     return find_all_playoff_teams(teams, first_half_season_champion) * (3 ** total_remain_games), teams
+    elif depth > len(games) // 2 and IsRankFixed(teams, remaining_n_games, first_half_season_record):
+        total_remain_games = len(games) - depth # not sure
+        return find_all_playoff_teams(teams, first_half_season_champion, first_half_season_record) * (3 ** total_remain_games), teams
 
     home = games[depth][0]
     guest = games[depth][1]
@@ -109,11 +109,11 @@ def main():
         stateDict = {}
         remaining_n_games = np.full(n_teams, n_games * (n_teams - 1))
 
-        gen_first_half_season_record(teams, n_games)
+        # gen_first_half_season_record(teams, n_games)
         # first_half_season_champions = find_one_first_half_season_champion(teams)
         # first_half_season_champions = find_all_first_half_season_champion(teams)
         # simulate(0, teams, games, None, intentional_lose, stateDict)
-        simulate(len(games) // 2, teams, games, None, None, stateDict, remaining_n_games)
+        simulate(0, teams, games, None, None, stateDict, remaining_n_games)
         time_elapsed = time.time() - start_time
         print(f'node count = {count}')
         print('time = %.2f s' % time_elapsed)

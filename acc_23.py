@@ -23,34 +23,34 @@ def get_state(teams):
         state += team.get_key()
     return state
 
-def simulate(depth, teams, games, first_half_season_champion, first_half_season_record, stateDict, remaining_n_games):
+def simulate(depth, teams, games, first_half_season_champion, first_half_season_record, remaining_n_games):
     global count
     count += 1
 
-    state = get_state(teams)
-    if state in stateDict:
-        return stateDict[state], teams
+    # state = get_state(teams)
+    # if state in stateDict:
+    #     return stateDict[state], teams
 
     if depth == len(games) // 2:
         first_half_season_champion, first_half_season_record = find_one_first_half_season_champion_n_record(teams)
     elif depth == len(games):
         return find_all_playoff_teams(teams, first_half_season_champion, first_half_season_record), teams
-    # elif IsRankFixed(teams, remaining_n_games):
-    #     total_remain_games = len(games) - depth # not sure
-    #     return find_all_playoff_teams(teams, first_half_season_champion) * (3 ** total_remain_games), teams
+    elif IsRankFixed(teams, remaining_n_games, first_half_season_record):
+        total_remain_games = len(games) - depth # not sure
+        return find_all_playoff_teams(teams, first_half_season_champion, first_half_season_record) * (3 ** total_remain_games), teams
 
     home = games[depth][0]
     guest = games[depth][1]
     remaining_n_games[home] -= 1
     remaining_n_games[guest] -= 1
     # home team wins
-    playoff_chances_hw, hw_final_state = simulate(depth + 1, gen_new_record(teams, home, guest), games, first_half_season_champion, first_half_season_record, stateDict, deepcopy(remaining_n_games))
+    playoff_chances_hw, hw_final_state = simulate(depth + 1, gen_new_record(teams, home, guest), games, first_half_season_champion, first_half_season_record, deepcopy(remaining_n_games))
 
     # guest team wins
-    playoff_chances_gw, gw_final_state = simulate(depth + 1, gen_new_record(teams, guest, home), games, first_half_season_champion, first_half_season_record, stateDict, deepcopy(remaining_n_games))
+    playoff_chances_gw, gw_final_state = simulate(depth + 1, gen_new_record(teams, guest, home), games, first_half_season_champion, first_half_season_record, deepcopy(remaining_n_games))
 
     # draw
-    playoff_chances_d, d_final_state = simulate(depth + 1, gen_new_record_draw(teams, home, guest), games, first_half_season_champion, first_half_season_record, stateDict, deepcopy(remaining_n_games))
+    playoff_chances_d, d_final_state = simulate(depth + 1, gen_new_record_draw(teams, home, guest), games, first_half_season_champion, first_half_season_record, deepcopy(remaining_n_games))
 
     # print(playoff_chances_hw)
     # print(playoff_chances_gw)
@@ -86,7 +86,7 @@ def simulate(depth, teams, games, first_half_season_champion, first_half_season_
         #     print(f'one of s2 champions = {get_all_second_half_champions(final_state, first_half_season_record)}')
         #     print('---')
 
-    stateDict[state] = playoff_chances_hw + playoff_chances_gw + playoff_chances_d
+    # stateDict[state] = playoff_chances_hw + playoff_chances_gw + playoff_chances_d
 
     return playoff_chances_hw + playoff_chances_gw + playoff_chances_d, final_state
 
@@ -106,14 +106,13 @@ def main():
         games = first_half_season + second_half_season
         teams = create_teams(n_teams)
         # intentional_lose = np.zeros(len(games))
-        stateDict = {}
         remaining_n_games = np.full(n_teams, n_games * (n_teams - 1))
 
         gen_first_half_season_record(teams, n_games)
         # first_half_season_champions = find_one_first_half_season_champion(teams)
         # first_half_season_champions = find_all_first_half_season_champion(teams)
         # simulate(0, teams, games, None, intentional_lose, stateDict)
-        simulate(len(games) // 2, teams, games, None, None, stateDict, remaining_n_games)
+        simulate(len(games) // 2, teams, games, None, None, remaining_n_games)
         time_elapsed = time.time() - start_time
         print(f'node count = {count}')
         print('time = %.2f s' % time_elapsed)

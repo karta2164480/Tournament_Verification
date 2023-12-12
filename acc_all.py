@@ -35,9 +35,9 @@ def simulate(depth, teams, games, first_half_season_champion, first_half_season_
         first_half_season_champion, first_half_season_record = find_one_first_half_season_champion_n_record(teams)
     elif depth == len(games):
         return find_all_playoff_teams(teams, first_half_season_champion, first_half_season_record), teams
-    # elif IsRankFixed(teams, remaining_n_games):
-    #     total_remain_games = len(games) - depth # not sure
-    #     return find_all_playoff_teams(teams, first_half_season_champion) * (3 ** total_remain_games), teams
+    elif IsRankFixed(teams, remaining_n_games, first_half_season_record):
+        total_remain_games = len(games) - depth # not sure
+        return find_all_playoff_teams(teams, first_half_season_champion, first_half_season_record) * (3 ** total_remain_games), teams
 
     home = games[depth][0]
     guest = games[depth][1]

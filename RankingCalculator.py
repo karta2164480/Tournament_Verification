@@ -90,10 +90,10 @@ def find_all_playoff_teams(teams, first_half_season_champion, first_half_season_
 
     return playoff_teams
 
-def IsRankFixed(teams, remaining_n_games):
+def IsRankFixed(teams, remaining_n_games, first_half_season_record):
     n = len(teams)
 
-    second_half_champions = get_all_second_half_champions(teams)
+    second_half_champions = get_all_second_half_champions(teams, first_half_season_record)
     for champion in second_half_champions:
         champion_record = deepcopy(teams[champion])
         champion_record.lose += remaining_n_games[champion]
