@@ -35,7 +35,7 @@ def simulate(depth, teams, games, first_half_season_champion, first_half_season_
     elif depth == len(games):
         return find_all_playoff_teams(teams, first_half_season_champion, first_half_season_record), teams
     # elif IsRankFixed(teams, remaining_n_games):
-    #     total_remain_games = len(games) - depth # not sure
+    #     total_remain_games = len(games) - depth - 1
     #     return find_all_playoff_teams(teams, first_half_season_champion) * (3 ** total_remain_games), teams
 
     home = games[depth][0]
@@ -97,7 +97,6 @@ def main():
     second_half_season = create_schedule(n_teams, n_games)
     games = first_half_season + second_half_season
     teams = create_teams(n_teams)
-    # intentional_lose = np.zeros(len(games))
     stateDict = {}
     remaining_n_games = np.full(n_teams, n_games * (n_teams - 1))
 
@@ -107,9 +106,6 @@ def main():
     # simulate(0, teams, games, None, intentional_lose, stateDict)
     simulate(len(games) // 2, teams, games, None, None, stateDict, remaining_n_games)
     print(f'node count = {count}')
-    # for i in range(len(games)):
-    #     if intentional_lose[i] == 1:
-    #         print("Game %d may have teams intentionally lose." % (i + 1))
 
 
 if __name__ == "__main__":
