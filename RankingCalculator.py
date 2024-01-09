@@ -12,7 +12,7 @@ def find_one_first_half_season_champion_n_record(teams):
     for i in range(len(teams)):
         if winrate(teams[i]) > winrate(teams[result]):
             result = i
-    first_half_season_record = teams
+    first_half_season_record = deepcopy(teams)
     return result, first_half_season_record
 
 def get_second_half_season_record(teams, first_half_season_record):

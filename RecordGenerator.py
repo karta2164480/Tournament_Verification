@@ -32,3 +32,27 @@ def gen_first_half_season_record(teams, n_games):
     for team in teams:
         print("team %d: %d %d %d" % (team.id, team.win, team.lose, team.draw))
     return
+
+# assign some game results for the second half season 
+def gen_some_second_half_season_record(teams, num_game_assigned_second, games, remaining_n_games):
+    print(games)
+    second_half_season_start = len(games) // 2
+    for i in range(num_game_assigned_second):
+        first_team = games[i+second_half_season_start][0]
+        second_team = games[i+second_half_season_start][1]
+        remaining_n_games[first_team] -= 1
+        remaining_n_games[second_team] -= 1
+        winner = randint(0, 2)
+        if winner == 2:
+            teams[first_team].draw += 1
+            teams[second_team].draw += 1
+        elif winner == 1:
+            teams[first_team].lose += 1
+            teams[second_team].win += 1
+        elif winner == 0:
+            teams[first_team].win += 1
+            teams[second_team].lose += 1
+        else:
+            raise Exception("winner should be 0, 1, or 2")
+
+    return

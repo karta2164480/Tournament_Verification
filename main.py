@@ -92,7 +92,9 @@ def simulate(depth, teams, games, first_half_season_champion, first_half_season_
 count = 0
 def main():
     n_teams = 4#int(input("Input the number of teams: "))
-    n_games = 2#int(input("Input the number of games that each team plays against another in a half-season: "))
+    n_games = 3#int(input("Input the number of games that each team plays against another in a half-season: "))
+    num_game_assigned_second = 9#int(input("Input the number of games that are assigned results in the second half-season: "))
+
     first_half_season = create_schedule(n_teams, n_games)
     second_half_season = create_schedule(n_teams, n_games)
     games = first_half_season + second_half_season
@@ -100,11 +102,19 @@ def main():
     stateDict = {}
     remaining_n_games = np.full(n_teams, n_games * (n_teams - 1))
 
+    first_half_season_champion, first_half_season_record = None, None 
+
     gen_first_half_season_record(teams, n_games)
+    
+
+    if num_game_assigned_second > 0: 
+        first_half_season_champion, first_half_season_record = find_one_first_half_season_champion_n_record(teams)
+    gen_some_second_half_season_record(teams, num_game_assigned_second, games, remaining_n_games)
     # first_half_season_champions = find_one_first_half_season_champion(teams)
     # first_half_season_champions = find_all_first_half_season_champion(teams)
     # simulate(0, teams, games, None, intentional_lose, stateDict)
-    simulate(len(games) // 2, teams, games, None, None, stateDict, remaining_n_games)
+    
+    simulate(len(games) // 2 + num_game_assigned_second, teams, games, first_half_season_champion, first_half_season_record, stateDict, remaining_n_games)
     print(f'node count = {count}')
 
 
