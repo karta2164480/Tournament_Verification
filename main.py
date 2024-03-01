@@ -4,6 +4,7 @@ import numpy as np
 from Team import Team
 from RecordGenerator import *
 from RankingCalculator import *
+import time
 
 def create_schedule(n_teams, n_games):
     games = list(combinations(range(n_teams), 2)) * n_games
@@ -22,7 +23,7 @@ def get_state(teams):
         state += team.get_key()
     return state
 
-def simulate(depth, teams, games, first_half_season_champion, first_half_season_record, stateDict, remaining_n_games):
+def simulate(depth, teams, games, first_half_season_champion, first_half_season_record, stateDict, remaining_n_games, weights = [1/3, 1/3, 1/3]):
     global count
     count += 1
 
@@ -43,13 +44,17 @@ def simulate(depth, teams, games, first_half_season_champion, first_half_season_
     remaining_n_games[home] -= 1
     remaining_n_games[guest] -= 1
     # home team wins
-    playoff_chances_hw, hw_final_state = simulate(depth + 1, gen_new_record(teams, home, guest), games, first_half_season_champion, first_half_season_record, stateDict, deepcopy(remaining_n_games))
+    playoff_chances_hw, hw_final_state = simulate(depth + 1, gen_new_record(teams, home, guest), games, first_half_season_champion, first_half_season_record, stateDict, deepcopy(remaining_n_games), weights)
 
     # guest team wins
-    playoff_chances_gw, gw_final_state = simulate(depth + 1, gen_new_record(teams, guest, home), games, first_half_season_champion, first_half_season_record, stateDict, deepcopy(remaining_n_games))
+    playoff_chances_gw, gw_final_state = simulate(depth + 1, gen_new_record(teams, guest, home), games, first_half_season_champion, first_half_season_record, stateDict, deepcopy(remaining_n_games), weights)
 
     # draw
-    playoff_chances_d, d_final_state = simulate(depth + 1, gen_new_record_draw(teams, home, guest), games, first_half_season_champion, first_half_season_record, stateDict, deepcopy(remaining_n_games))
+    playoff_chances_d, d_final_state = simulate(depth + 1, gen_new_record_draw(teams, home, guest), games, first_half_season_champion, first_half_season_record, stateDict, deepcopy(remaining_n_games), weights)
+
+    playoff_chances_hw = np.array(playoff_chances_hw) * weights[0]
+    playoff_chances_gw = np.array(playoff_chances_gw) * weights[1]
+    playoff_chances_d = np.array(playoff_chances_d) * weights[2]
 
     # print(playoff_chances_hw)
     # print(playoff_chances_gw)
@@ -62,16 +67,16 @@ def simulate(depth, teams, games, first_half_season_champion, first_half_season_
         if playoff_chances_hw[guest] > playoff_chances_gw[guest]:
             final_state = hw_final_state
 
-        if depth >= 22: # for debug
+        if depth >= 35: # for debug
             print('---')
             print(f'state =              {state}')
             print(f'second half record = {get_state(get_second_half_season_record(teams, first_half_season_record))}')
             if playoff_chances_gw[home] > playoff_chances_hw[home]:
                 print(f'game {depth+1} ({home},{guest}), team {home} may intentionally lose')
-                print(f'{guest} win chances = {int(playoff_chances_gw[home])}, {home} win chanes = {int(playoff_chances_hw[home])}')
+                print(f'{guest} win chances = {round(playoff_chances_gw[home], 2)}, {home} win chanes = {round(playoff_chances_hw[home], 2)}')
             if playoff_chances_hw[guest] > playoff_chances_gw[guest]:
                 print(f'game {depth+1} ({home},{guest}), team {guest} may intentionally lose')
-                print(f'{home} win chances = {int(playoff_chances_hw[guest])}, {guest} win chances = {int(playoff_chances_gw[guest])}')
+                print(f'{home} win chances = {round(playoff_chances_hw[guest], 2)}, {guest} win chances = {round(playoff_chances_gw[guest], 2)}')
             print(f'state if {guest} win =     {get_state(gen_new_record(teams, guest, home))}')
             print(f's2 record if {guest} win = {get_state(get_second_half_season_record(gen_new_record(teams, guest, home), first_half_season_record))}')
             print(f'state if {home} win =     {get_state(gen_new_record(teams, home, guest))}')
@@ -90,33 +95,51 @@ def simulate(depth, teams, games, first_half_season_champion, first_half_season_
     return playoff_chances_hw + playoff_chances_gw + playoff_chances_d, final_state
 
 count = 0
+
 def main():
     n_teams = 4#int(input("Input the number of teams: "))
     n_games = 3#int(input("Input the number of games that each team plays against another in a half-season: "))
-    num_game_assigned_second = 9#int(input("Input the number of games that are assigned results in the second half-season: "))
+    num_game_assigned_second = 1#int(input("Input the number of games that are assigned results in the second half-season: "))
+    weights = [1, 1, 0.1]#list(map(float, input("Input the weights of home win, guest win, and draw: ").split()))
+    test_num = 1#int(input("Input the number of tests: ")) 
+    sum_count = 0
+    sum_time = 0
 
-    first_half_season = create_schedule(n_teams, n_games)
-    second_half_season = create_schedule(n_teams, n_games)
-    games = first_half_season + second_half_season
-    teams = create_teams(n_teams)
-    stateDict = {}
-    remaining_n_games = np.full(n_teams, n_games * (n_teams - 1))
+    for i in range(test_num):
+        time_start = time.time()
+        global count
+        count = 0
 
-    first_half_season_champion, first_half_season_record = None, None 
+        first_half_season = create_schedule(n_teams, n_games)
+        second_half_season = create_schedule(n_teams, n_games)
+        games = first_half_season + second_half_season
+        teams = create_teams(n_teams)
+        stateDict = {}
+        remaining_n_games = np.full(n_teams, n_games * (n_teams - 1))
 
-    gen_first_half_season_record(teams, n_games)
-    
+        first_half_season_champion, first_half_season_record = None, None 
 
-    if num_game_assigned_second > 0: 
-        first_half_season_champion, first_half_season_record = find_one_first_half_season_champion_n_record(teams)
-    gen_some_second_half_season_record(teams, num_game_assigned_second, games, remaining_n_games)
-    # first_half_season_champions = find_one_first_half_season_champion(teams)
-    # first_half_season_champions = find_all_first_half_season_champion(teams)
-    # simulate(0, teams, games, None, intentional_lose, stateDict)
-    
-    simulate(len(games) // 2 + num_game_assigned_second, teams, games, first_half_season_champion, first_half_season_record, stateDict, remaining_n_games)
-    print(f'node count = {count}')
+        gen_first_half_season_record(teams, n_games)
+        
+
+        if num_game_assigned_second > 0: 
+            first_half_season_champion, first_half_season_record = find_one_first_half_season_champion_n_record(teams)
+        gen_some_second_half_season_record(teams, num_game_assigned_second, games, remaining_n_games)
+        # first_half_season_champions = find_one_first_half_season_champion(teams)
+        # first_half_season_champions = find_all_first_half_season_champion(teams)
+        # simulate(0, teams, games, None, intentional_lose, stateDict)
+        
+        simulate(len(games) // 2 + num_game_assigned_second, teams, games, first_half_season_champion, first_half_season_record, stateDict, remaining_n_games, weights)
+        time_now = time.time()
+        print(f'node count = {count}')
+        print(f'time = {time_now - time_start}')
+        sum_count += count
+        sum_time += time_now - time_start
+
+    print(f'average node count = {sum_count / test_num}')
+    print(f'average time = {sum_time / test_num}')
 
 
 if __name__ == "__main__":
     main()
+    
