@@ -312,6 +312,8 @@ def best_child(node, is_exploration):
   使用UCB算法，权衡exploration和exploitation后选择得分最高的子节点，注意如果是预测阶段直接选择当前Q值得分最高的。
   """
 
+
+
   # TODO: Use the min float value
   best_score = -sys.maxsize
   best_sub_node = None
@@ -327,8 +329,18 @@ def best_child(node, is_exploration):
 
     # UCB = quality / times + C * sqrt(2 * ln(total_times) / times)
     left = sub_node.get_quality_value() / sub_node.get_visit_times()
-    right = 2.0 * math.log(node.get_visit_times()) / sub_node.get_visit_times()
-    score = left + C * math.sqrt(right)
+
+    # right = 2.0 * math.log(node.get_visit_times()) / sub_node.get_visit_times()
+    # score = left + C * math.sqrt(right)
+
+
+    Vj = left - (left)**2 + math.sqrt(2 * math.log(node.get_visit_times()) / sub_node.get_visit_times())
+    ucb_tuned_right = math.sqrt(math.log(node.get_visit_times()) / sub_node.get_visit_times() * min(0.25, Vj))
+    if is_exploration:
+      score = left + ucb_tuned_right
+    else:
+      score = left
+
 
     if score > best_score:
       best_sub_node = sub_node
@@ -399,8 +411,9 @@ def main():
   total_two_ways_diff = 0
   total_two_ways_count = 0
 
-  for round in range(test_time):
-    print(f'test round {round}')
+  test_round = 0
+  while test_round < test_time:  
+    print(f'test round {test_round}')
     first_half_season = create_schedule(n_teams, n_games)
     second_half_season = create_schedule(n_teams, n_games)
     games = first_half_season + second_half_season
@@ -414,6 +427,12 @@ def main():
     if num_game_assigned_second >= 0:
       global first_half_season_champion, first_half_season_record 
       first_half_season_champion, first_half_season_record = find_one_first_half_season_champion_n_record(teams)
+      if first_half_season_champion == team_id:
+        print("first half season champion is same as team_id")
+        print("redo this round")
+        #redo this loop
+        continue
+
     gen_some_second_half_season_record(teams, num_game_assigned_second, games, remaining_n_games)
 
     print(games[len(games) // 2 + num_game_assigned_second:])
@@ -491,6 +510,7 @@ def main():
     print(two_ways_diff / two_ways_count)
     total_two_ways_diff += two_ways_diff
     total_two_ways_count += two_ways_count
+    test_round += 1
 
   print(total_two_ways_diff / total_two_ways_count)
   print(time.time() - now)
