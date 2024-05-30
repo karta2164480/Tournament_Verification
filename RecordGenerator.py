@@ -31,7 +31,7 @@ def gen_first_half_season_record(teams, n_games):
 
     print("first half season records:")
     for team in teams:
-        print("team %d: %d %d %d" % (team.id, team.win, team.lose, team.draw))
+        print("team %d: %d %d %d" % (team.id, team.win, team.lose, team.draw), flush=True)
     return
 
 # assign some game results for the second half season 
