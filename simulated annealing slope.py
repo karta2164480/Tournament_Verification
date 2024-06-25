@@ -5,52 +5,17 @@ from Team import Team
 from RecordGenerator import *
 from RankingCalculator import *
 import time
-import sys
-import json
-
-with open('win_lose_2017.json', 'r', encoding='utf-8') as file:
-	win_lose_dict_2017 = json.load(file)
-
-
 
 def create_schedule(n_teams, n_games):
     games = list(combinations(range(n_teams), 2)) * n_games
     random.shuffle(games)
     return games
 
-def assign_schedule(path):
-    schedule = []
-    with open(path, 'r') as file:
-        for line in file:
-            parts = line.strip().split()  # 分割行並去除空白
-            if len(parts) == 2:
-                schedule.append((int(parts[0]), int(parts[1])))
-
-    print(schedule)
-    return schedule
-
-def neighbor_schedule(games, num_game_assigned_second, most_loss_game):
-    randomRate = 0.5
-    dice = np.random.rand()
-    print(most_loss_game)
-    if dice > randomRate:
-        print("choose most loss game")
-        new_games = games.copy()
-        i = random.sample(range(len(games)-num_game_assigned_second), 1)[0]
-        i += num_game_assigned_second
-        j = most_loss_game[1] - len(games)        
-        while i == j :
-            i =  random.sample(range(len(games)-num_game_assigned_second), 1)[0]
-            i += num_game_assigned_second
-        new_games[i], new_games[j] = new_games[j], new_games[i]
-        return new_games    
-    else:
-        new_games = games.copy()
-        i, j = random.sample(range(len(games)-num_game_assigned_second), 2)
-        i += num_game_assigned_second
-        j += num_game_assigned_second
-        new_games[i], new_games[j] = new_games[j], new_games[i]
-        return new_games
+def neighbor_schedule(games):
+    new_games = games.copy()
+    i, j = random.sample(range(len(games)), 2)
+    new_games[i], new_games[j] = new_games[j], new_games[i]
+    return new_games
 
 def create_teams(n):
     teams = []
@@ -64,29 +29,18 @@ def get_state(teams):
         state += team.get_key()
     return state
 
-def find_most_loss_game(loss_list):
-    most_loss = 0
-    most_loss_game = None
-    for i in range(len(loss_list)):
-        if loss_list[i][0] > most_loss:
-            most_loss = loss_list[i][0]
-            most_loss_game = loss_list[i][1]
-
-    return (most_loss, most_loss_game)
-
-
 def simulate(depth, teams, games, first_half_season_champion, first_half_season_record, stateDict, remaining_n_games, weights = [1, 1, 1]):
     global count
     count += 1
 
     state = get_state(teams)
     if state in stateDict:
-        return stateDict[state][0], teams, stateDict[state][1], stateDict[state][2]
+        return stateDict[state][0], teams, stateDict[state][1]
 
     if depth == len(games) // 2:
         first_half_season_champion, first_half_season_record = find_one_first_half_season_champion_n_record(teams)
     elif depth == len(games):
-        return find_all_playoff_teams(teams, first_half_season_champion, first_half_season_record), teams, 0, (0, None)
+        return find_all_playoff_teams(teams, first_half_season_champion, first_half_season_record), teams, 0
     # elif IsRankFixed(teams, remaining_n_games):
     #     total_remain_games = len(games) - depth - 1
     #     return find_all_playoff_teams(teams, first_half_season_champion) * (3 ** total_remain_games), teams
@@ -96,13 +50,13 @@ def simulate(depth, teams, games, first_half_season_champion, first_half_season_
     remaining_n_games[home] -= 1
     remaining_n_games[guest] -= 1
     # home team wins
-    playoff_chances_hw, hw_final_state, hw_loser_benefit, hw_most_loss = simulate(depth + 1, gen_new_record(teams, home, guest), games, first_half_season_champion, first_half_season_record, stateDict, deepcopy(remaining_n_games), weights)
+    playoff_chances_hw, hw_final_state, hw_loser_benefit = simulate(depth + 1, gen_new_record(teams, home, guest), games, first_half_season_champion, first_half_season_record, stateDict, deepcopy(remaining_n_games), weights)
 
     # guest team wins
-    playoff_chances_gw, gw_final_state, gw_loser_benefit, gw_most_loss = simulate(depth + 1, gen_new_record(teams, guest, home), games, first_half_season_champion, first_half_season_record, stateDict, deepcopy(remaining_n_games), weights)
+    playoff_chances_gw, gw_final_state, gw_loser_benefit = simulate(depth + 1, gen_new_record(teams, guest, home), games, first_half_season_champion, first_half_season_record, stateDict, deepcopy(remaining_n_games), weights)
 
     # draw
-    playoff_chances_d, d_final_state, d_loser_benefit, d_most_loss = simulate(depth + 1, gen_new_record_draw(teams, home, guest), games, first_half_season_champion, first_half_season_record, stateDict, deepcopy(remaining_n_games), weights)
+    playoff_chances_d, d_final_state, d_loser_benefit = simulate(depth + 1, gen_new_record_draw(teams, home, guest), games, first_half_season_champion, first_half_season_record, stateDict, deepcopy(remaining_n_games), weights)
 
     playoff_chances_hw = np.array(playoff_chances_hw) * weights[0]
     playoff_chances_gw = np.array(playoff_chances_gw) * weights[1]
@@ -113,48 +67,23 @@ def simulate(depth, teams, games, first_half_season_champion, first_half_season_
     guest_gain = -playoff_chances_diff[guest]
 
     # print(home_gain, guest_gain)
-    loser_benefit = 0
+    loser_benefit = hw_loser_benefit + gw_loser_benefit + d_loser_benefit
+
     loser_benefit_gain = 0
-
-    if(sys.argv[1] == 'weight'):
-        loser_benefit = (hw_loser_benefit + gw_loser_benefit + d_loser_benefit)/3
-        if playoff_chances_gw[home] > playoff_chances_hw[home] or playoff_chances_hw[guest] > playoff_chances_gw[guest]:
-            loser_benefit_gain = 1
-            loser_benefit += loser_benefit_gain
+    if home_gain < 0:
+        loser_benefit_gain += -home_gain
+    if guest_gain < 0:
+        loser_benefit_gain += -guest_gain
     
-    elif(sys.argv[1] == 'slope'):
-        loser_benefit = hw_loser_benefit + gw_loser_benefit + d_loser_benefit
+    loser_benefit += loser_benefit_gain
 
-        loser_benefit_gain = 0
-        if home_gain < 0:
-            loser_benefit_gain += -home_gain
-        if guest_gain < 0:
-            loser_benefit_gain += -guest_gain
-        
-        loser_benefit += loser_benefit_gain
-    elif(sys.argv[1] == 'mix'):
-        loser_benefit = (hw_loser_benefit + gw_loser_benefit + d_loser_benefit)/3
-
-        loser_benefit_gain = 0
-        if home_gain < 0:
-            loser_benefit_gain += -home_gain
-        if guest_gain < 0:
-            loser_benefit_gain += -guest_gain
-        
-        loser_benefit += loser_benefit_gain
-    else:
-        raise Exception("No mode set")
     # print(playoff_chances_hw)
     # print(playoff_chances_gw)
     # print(playoff_chances_d)
-
-    most_loss = find_most_loss_game([(loser_benefit_gain, depth), hw_most_loss, gw_most_loss, d_most_loss])
-
     final_state = hw_final_state
     if (playoff_chances_gw[home] > playoff_chances_hw[home] and first_half_season_champion != home) \
     or ( playoff_chances_hw[guest] > playoff_chances_gw[guest] and first_half_season_champion != guest):
-        
-        
+        # loser_benefit_count += 1
         if playoff_chances_gw[home] > playoff_chances_hw[home]:
             final_state = gw_final_state
         if playoff_chances_hw[guest] > playoff_chances_gw[guest]:
@@ -183,9 +112,9 @@ def simulate(depth, teams, games, first_half_season_champion, first_half_season_
         #     print(f'one of s2 champions = {get_all_second_half_champions(final_state, first_half_season_record)}')
         #     print('---')
 
-    stateDict[state] = (playoff_chances_hw + playoff_chances_gw + playoff_chances_d, loser_benefit, most_loss)
+    stateDict[state] = (playoff_chances_hw + playoff_chances_gw + playoff_chances_d, loser_benefit)
 
-    return playoff_chances_hw + playoff_chances_gw + playoff_chances_d, final_state, loser_benefit, most_loss
+    return playoff_chances_hw + playoff_chances_gw + playoff_chances_d, final_state, loser_benefit
 
 
 
@@ -200,7 +129,7 @@ def main():
     test_num = 1#int(input("Input the number of tests: ")) 
     sum_count = 0
     sum_time = 0
-    most_loss_game = (0, None)
+
 
     for i in range(test_num):
         time_start = time.time()
@@ -208,30 +137,19 @@ def main():
         count = 0
         teams = create_teams(n_teams)
 
-        if len(sys.argv) >= 3:
-            random.seed(int(sys.argv[2]))
-
         first_half_season = create_schedule(n_teams, n_games)
         gen_first_half_season_record(teams, n_games)
 
         first_half_season_champion, first_half_season_record = None, None 
 
-        # support assigned some second half record
+        # # support assigned some second half record
         # if num_game_assigned_second > 0: 
         #     first_half_season_champion, first_half_season_record = find_one_first_half_season_champion_n_record(teams)
-        #     gen_some_second_half_season_record(teams, num_game_assigned_second, games, remaining_n_games)
+        # gen_some_second_half_season_record(teams, num_game_assigned_second, games, remaining_n_games)
 
         max_annealing_time = 100
         annealing_time = 0
-        T = 0
-        if(sys.argv[1] == 'weight'):
-            T = 1
-        elif(sys.argv[1] == 'slope'):
-            T = 100000
-        elif(sys.argv[1] == 'mix'):
-            T = 1000
-        else:
-            raise Exception("No mode set")
+        T = 100000
         Rt = T/max_annealing_time
         
         best_loss = float("inf")
@@ -244,15 +162,14 @@ def main():
             if annealing_time == 0:
                 second_half_season = create_schedule(n_teams, n_games)
             else:
-                second_half_season = neighbor_schedule(previous_schedule, num_game_assigned_second, most_loss_game)
+                second_half_season = neighbor_schedule(previous_schedule)
             games = first_half_season + second_half_season
         
             stateDict = {}
             remaining_n_games = np.full(n_teams, n_games * (n_teams - 1))
         
-            _, _, loss, most_loss_game = simulate(len(games) // 2 + num_game_assigned_second, teams, games, first_half_season_champion, first_half_season_record, stateDict, remaining_n_games, weights)
+            _, _, loss = simulate(len(games) // 2 + num_game_assigned_second, teams, games, first_half_season_champion, first_half_season_record, stateDict, remaining_n_games, weights)
             print("annealing_time: ", annealing_time)
-            print("schedule: ", second_half_season)
             print("loss: ", loss)
             
 
@@ -262,12 +179,12 @@ def main():
             dice = np.random.rand()
             
             print("threshold: ", threshold)
-            print("dice: ", dice, flush=True)
+            print("dice: ", dice)
 
             if dice < threshold:
                 previous_schedule = second_half_season
                 previous_loss = loss
-                print("move", flush=True)
+                print("move")
             
             if loss < best_loss:
                 best_schedule = second_half_season
@@ -277,15 +194,7 @@ def main():
             annealing_time += 1
             if annealing_time == max_annealing_time:
                 max_annealing_time += 50
-                if(sys.argv[1] == 'weight'):
-                    T = 0.1
-                elif(sys.argv[1] == 'slope'):
-                    T = 10000
-                elif(sys.argv[1] == 'mix'):
-                    T = 100
-                else:
-                    raise Exception("No mode set")
-                
+                T = 10000
                 Rt = T/50
         
         time_now = time.time()
