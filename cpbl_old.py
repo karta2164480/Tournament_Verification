@@ -134,15 +134,26 @@ def simulate(depth, teams, games, first_half_season_champion, first_half_season_
         if playoff_chances_gw[home] > playoff_chances_hw[home] or playoff_chances_hw[guest] > playoff_chances_gw[guest]:
             loser_benefit_gain = 1
             loser_benefit += loser_benefit_gain
-    
+    elif(sys.argv[1] == 'node'):
+        loser_benefit = hw_loser_benefit + gw_loser_benefit + d_loser_benefit
+        if playoff_chances_gw[home] > playoff_chances_hw[home] or playoff_chances_hw[guest] > playoff_chances_gw[guest]:
+            loser_benefit_gain = 1
+            loser_benefit += loser_benefit_gain
+            # print(depth)
     elif(sys.argv[1] == 'slope'):
         loser_benefit = hw_loser_benefit + gw_loser_benefit + d_loser_benefit
 
         loser_benefit_gain = 0
         if home_gain < 0:
             loser_benefit_gain += -home_gain
+            print("home gain < 0")
+            print(f'home:{home} guest:{guest}')
+            print(get_state(teams))
         if guest_gain < 0:
             loser_benefit_gain += -guest_gain
+            print("guest gain < 0")
+            print(f'home:{home} guest:{guest}')
+            print(get_state(teams))   
         
         loser_benefit += loser_benefit_gain
     elif(sys.argv[1] == 'mix'):
@@ -255,6 +266,8 @@ def main():
             T = 100000
         elif(sys.argv[1] == 'mix'):
             T = 1000
+        elif(sys.argv[1] == 'node'):
+            T = 10000000
         else:
             raise Exception("No mode set")
         Rt = T/max_annealing_time

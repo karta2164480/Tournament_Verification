@@ -3,7 +3,7 @@ import random
 import numpy as np
 from Team import Team
 from RecordGenerator import *
-from RankingCalculator import *
+from RankingCalculator_2017 import *
 import time
 import sys
 import json
@@ -14,8 +14,8 @@ import math
 
 year = int(sys.argv[4])
 
-with open(f'win_lose_{year}_re.json', 'r', encoding='utf-8') as file:
-    win_lose_dict_2017_re = json.load(file)
+with open(f'win_lose_{year}_rain_postponed.json', 'r', encoding='utf-8') as file:
+    win_lose_dict_rain_postponed = json.load(file)
 
 def create_schedule(n_teams, n_games):
     games = list(combinations(range(n_teams), 2)) * n_games
@@ -38,9 +38,9 @@ def assign_win_lose(teams, game_sno):
         # teams[i].win = win_lose_dict_2017[str(game_sno)][i][0]
         # teams[i].lose = win_lose_dict_2017[str(game_sno)][i][1]
         # teams[i].draw = win_lose_dict_2017[str(game_sno)][i][2]
-        teams[i].win = win_lose_dict_2017_re[game_sno-1][i][0]
-        teams[i].lose = win_lose_dict_2017_re[game_sno-1][i][1]
-        teams[i].draw = win_lose_dict_2017_re[game_sno-1][i][2] 
+        teams[i].win = win_lose_dict_rain_postponed[game_sno-1][i][0]
+        teams[i].lose = win_lose_dict_rain_postponed[game_sno-1][i][1]
+        teams[i].draw = win_lose_dict_rain_postponed[game_sno-1][i][2] 
 
 def neighbor_schedule(games, num_game_assigned_second, most_loss_game):
     randomRate = 0.5
@@ -139,21 +139,21 @@ def simulate(depth, teams, games, first_half_season_champion, first_half_season_
         if playoff_chances_gw[home] > playoff_chances_hw[home] or playoff_chances_hw[guest] > playoff_chances_gw[guest]:
             loser_benefit_gain = 1
             loser_benefit += loser_benefit_gain
-            print(f'depth: {depth}')
+            # print(depth)
     elif(sys.argv[1] == 'slope'):
         loser_benefit = hw_loser_benefit + gw_loser_benefit + d_loser_benefit
 
         loser_benefit_gain = 0
         if home_gain < 0:
             loser_benefit_gain += -home_gain
-            print("home gain < 0")
-            print(f'home:{home} guest:{guest}')
-            print(get_state(teams))
+            # print("home gain < 0")
+            # print(f'home:{home} guest:{guest}')
+            # print(get_state(teams))
         if guest_gain < 0:
             loser_benefit_gain += -guest_gain
-            print("guest gain < 0")
-            print(f'home:{home} guest:{guest}')
-            print(get_state(teams))
+            # print("guest gain < 0")
+            # print(f'home:{home} guest:{guest}')
+            # print(get_state(teams))   
         
         loser_benefit += loser_benefit_gain
     elif(sys.argv[1] == 'mix'):
@@ -219,7 +219,7 @@ count = 0
 def main():
     n_teams = 4#int(input("Input the number of teams: "))
     n_games = 20#int(input("Input the number of games that each team plays against another in a half-season: "))
-    num_game_assigned_second = int(sys.argv[3])#int(input("Input the number of games that are assigned results in the second half-season: "))
+    
     weights = [1, 1, 1]#list(map(float, input("Input the weights of home win, guest win, and draw: ").split()))
     test_num = 1#int(input("Input the number of tests: ")) 
     sum_count = 0
@@ -234,6 +234,8 @@ def main():
         n_games = 12
 
     half_season_games_count = math.comb(n_teams, 2) * n_games
+    num_game_assigned_second = len(win_lose_dict_rain_postponed) - half_season_games_count
+
 
     for i in range(test_num):
         time_start = time.time()
@@ -244,8 +246,8 @@ def main():
         if len(sys.argv) >= 3:
             random.seed(int(sys.argv[2]))
 
-        season_2017 = assign_schedule(f"schedule_{year}_re.txt")
-        first_half_season = season_2017[0:half_season_games_count]
+        season_schedule = assign_schedule(f"schedule_{year}_rain_postponed.txt")
+        first_half_season = season_schedule[0:half_season_games_count]
         # gen_first_half_season_record(teams, n_games)
         assign_win_lose(teams, half_season_games_count)
 
@@ -257,7 +259,7 @@ def main():
             # gen_some_second_half_season_record(teams, num_game_assigned_second, games, remaining_n_games)
             assign_win_lose(teams, half_season_games_count+num_game_assigned_second)
 
-        max_annealing_time = 1
+        max_annealing_time = 100
         annealing_time = 0
         T = 0
         if(sys.argv[1] == 'weight'):
@@ -280,7 +282,7 @@ def main():
         while best_loss != 0 and annealing_time < max_annealing_time:
             
             if annealing_time == 0:
-                second_half_season = season_2017[half_season_games_count:2*half_season_games_count]
+                second_half_season = season_schedule[half_season_games_count:2*half_season_games_count]
             else:
                 second_half_season = neighbor_schedule(previous_schedule, num_game_assigned_second, most_loss_game)
             games = first_half_season + second_half_season
@@ -313,18 +315,18 @@ def main():
 
             T -= Rt
             annealing_time += 1
-            # if annealing_time == max_annealing_time:
-            #     max_annealing_time += 50
-            #     if(sys.argv[1] == 'weight'):
-            #         T = 0.1
-            #     elif(sys.argv[1] == 'slope'):
-            #         T = 10000
-            #     elif(sys.argv[1] == 'mix'):
-            #         T = 100
-            #     else:
-            #         raise Exception("No mode set")
+            if annealing_time == max_annealing_time:
+                max_annealing_time += 50
+                if(sys.argv[1] == 'weight'):
+                    T = 0.1
+                elif(sys.argv[1] == 'slope'):
+                    T = 10000
+                elif(sys.argv[1] == 'mix'):
+                    T = 100
+                else:
+                    raise Exception("No mode set")
                 
-            #     Rt = T/50
+                Rt = T/50
         
         time_now = time.time()
         print(f'node count = {count}')
